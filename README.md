@@ -36,3 +36,7 @@ python3 -m pip install -r requirements.txt
 ```
 pytest -rP
 ```
+### Run the app
+```
+python3 src/app.py
+```
