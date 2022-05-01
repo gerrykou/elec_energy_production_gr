@@ -1,10 +1,26 @@
 # elec_energy_production_gr
 Electrical energy grid production per fuel and unit
 
+## Run Tests in Docker-compose
+```
+docker-compose -f ./docker-compose.yml build
+docker-compose -f ./docker-compose.yml run test
+docker-compose -f ./docker-compose.yml down
+```
+
 ## Run Tests in Docker
 ```
 docker build . -t elec-energy-production-gr:latest
 docker run elec-energy-production-gr:latest
+```
+## Run app in Docker
+```
+docker run --rm -it -v ${PWD}/data:/app/data elec-energy-production-gr:latest python3 src/app.py
+```
+
+## Debug Docker
+```
+docker run --rm -it -v ${PWD}/data:/app/data elec-energy-production-gr:latest bash 
 ```
 
 ## Run Locally
