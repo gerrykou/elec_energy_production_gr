@@ -1,5 +1,5 @@
 # elec_energy_production_gr
-Electrical energy grid production per fuel and unit
+Greek Electrical Energy Grid Production per Fuel and Unit
 
 ## Run Tests in Docker-compose
 ```
