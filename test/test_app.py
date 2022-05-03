@@ -11,3 +11,9 @@ def test_read_xls():
     assert 'sheet_name' in actual_output.keys()
     assert 'content' in actual_output.keys()
 
+def test_get_cell_value():
+    my_file = 'test/test.xls'
+    data = app.read_xls(my_file)['content']
+    actual_output = app._get_cell_value(51,1,data)
+    expected_output = 'TOTAL LIGNITE'
+    assert actual_output == expected_output

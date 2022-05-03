@@ -6,8 +6,8 @@ def read_xls(xls_filepath: str) -> dict:
     '''Read an xls file, return a dictionary with keys()=[sheet_name, content]'''
     f = xlrd.open_workbook(xls_filepath)
     logging.debug(f'Worksheet name(s): {f.sheet_names()}')
-
-    sh = f.sheet_by_index(1) # selects the 2nd sheet
+    sheet_number = 1
+    sh = f.sheet_by_index(sheet_number) # selects the 2nd sheet
     logging.debug(f'{sh.name}, {sh.nrows}, {sh.ncols}')
 
     file_content = []
@@ -20,7 +20,7 @@ def read_xls(xls_filepath: str) -> dict:
     return output_dict
 
 def test_content(data: list):
-    # TODO a dictionary {[row,col]:'known_value', [50,1]:'TOTAL LIGNITE'}
+    # TODO a known_labels dictionary {[row,col]:'known_label', [50,1]:'TOTAL LIGNITE'}
     row = 51
     col = 1
     cell_value = _get_cell_value(row, col, data)
@@ -44,12 +44,10 @@ def parse_hours(data: list):
     return hours
 
 def get_sum_lignite(data: list):
-    cell = str(data[51][26])
-    cell_list = cell.split(':')
-    cell_value = cell_list[1].strip("'")
-    sum_lignite = cell_value
+    sum_lignite = _get_cell_value(51, 26, data)
     logging.debug(f'sum_lignite:{sum_lignite}')
     return sum_lignite
+    #self.sum_lignite = _get_cell_value(51, 26, data) #take row,col from known_values dict {"sum_lignite":[row,col]}
 
 
 if __name__ == '__main__':
