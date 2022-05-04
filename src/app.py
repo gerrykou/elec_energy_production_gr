@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python3 
 import logging
 import xlrd
 import csv
@@ -6,7 +6,7 @@ from itertools import zip_longest
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-# from helpers import list_of_content # test break when implemented
+from helpers import list_of_content # test breaks when implemented
 
 expected_labels = {
     'NET LOAD':(10, 1),
@@ -92,14 +92,6 @@ if __name__ == '__main__':
     data_dict = read_xls(filepath, sheet_number)
     validate_content(data_dict['content'], expected_labels)
 
-    list_of_content = [
-        {"new_header": "TIME", "row": 4, "col_start":1, "col_end":26},
-        {"new_header": "LIGNITE_TOTAL", "row": 51, "col_start": 1, "col_end": 26},
-        {"new_header": "GAS_TOTAL", "row": 83, "col_start":1, "col_end":26},
-        {"new_header": "HYDRO_TOTAL", "row": 106, "col_start":1, "col_end":26},
-        {"new_header": "RES_TOTAL", "row": 187, "col_start": 1, "col_end": 26},
-    ]
-
     # output_dict_of_lists = {}
     # for i in list_of_content:
     #     output_dict_of_lists[f"{i['index']}"] = parse_row_to_list(i['row'],i['col_start'],i['col_end'],data_dict['content'])
@@ -107,7 +99,10 @@ if __name__ == '__main__':
 
     data_lists = []
     for i in list_of_content:
-        data_lists.append(parse_row_to_list(i['row'], i['col_start'], i['col_end'], data_dict['content'], i['new_header']))
+        # data_lists.append(parse_row_to_list(i['row'], i['col_start'], i['col_end'], data_dict['content'], i['new_header']))
+        col_start = 1
+        col_end =26
+        data_lists.append(parse_row_to_list(i['row'], col_start, col_end, data_dict['content'], i['new_header']))
     print(data_lists)
 
     output_folder = 'output'
