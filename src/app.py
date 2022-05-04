@@ -1,9 +1,12 @@
+#!/usr/bin/env python 
 import logging
 import xlrd
 import csv
 from itertools import zip_longest
+from pathlib import Path
+from typing import Dict, List, Tuple
 
-from typing import Any, Dict, List, Tuple
+# from helpers import list_of_content # test break when implemented
 
 expected_labels = {
     'NET LOAD':(10, 1),
@@ -52,29 +55,30 @@ def validate_content(data: list, expected_labels: Dict[str, Tuple]):
 def _get_cell_value(row: int, col: int, data: list):
     cell_value = data[row][col]
     return cell_value
-    #self.sum_lignite = _get_cell_value(51, 26, data) #take row,col from known_values dict {"sum_lignite":[row,col]}
 
-def parse_row_to_list(row: int , col_start: int, col_end: int, data: list) -> List:
+def parse_row_to_list(row: int, col_start: int, col_end: int, data: list, new_header: str='') -> List:
     output = []
     for i in range(col_start,col_end):
-        cell_value = _get_cell_value(row, i, data)
+        if i == 1 and new_header != '':
+            cell_value = new_header # replace existing header with new_header
+        else:
+            cell_value = _get_cell_value(row, i, data)
         output.append(cell_value)
     return output
 
-# def export_to_csv(self, filename):
-#     with open(filename , mode="w") as csv_file:
-#         fieldnames = ["date_month", "posts_sum", "comments_sum"]
-#         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-#         writer.writeheader()
-#         for date, sum in self.calculate_monthly_stats().items():
-#             writer.writerow({ "date_month" : date , "posts_sum": sum["posts_sum"], "comments_sum": sum["comments_sum"]})
-#     return None
-
-def write_to_csv(filepath: str, data_lists: List):
+def _write_to_csv(filepath: str, data_lists: List):
+    ''' Write lists in csv as columns'''
     export_data = zip_longest(*data_lists, fillvalue = '')
     with open(filepath , mode="w") as csv_file:
         wr = csv.writer(csv_file)
         wr.writerows(export_data)  
+
+def export_daily_production(folder, output_folder, date, data_lists):
+    csv_file_dir = f'{folder}/{output_folder}/{date}'
+    p = Path(csv_file_dir)
+    p.mkdir(parents=True,exist_ok=True)
+    csv_filepath = f'{csv_file_dir}/{date}_daily_production.csv'
+    _write_to_csv(csv_filepath, data_lists)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
@@ -88,16 +92,23 @@ if __name__ == '__main__':
     data_dict = read_xls(filepath, sheet_number)
     validate_content(data_dict['content'], expected_labels)
 
-    index_list = parse_row_to_list(row=4 , col_start=1, col_end=26, data=data_dict['content']) # col_end=27 if SUM want to be included
-    print(index_list)
+    list_of_content = [
+        {"new_header": "TIME", "row": 4, "col_start":1, "col_end":26},
+        {"new_header": "LIGNITE_TOTAL", "row": 51, "col_start": 1, "col_end": 26},
+        {"new_header": "GAS_TOTAL", "row": 83, "col_start":1, "col_end":26},
+        {"new_header": "HYDRO_TOTAL", "row": 106, "col_start":1, "col_end":26},
+        {"new_header": "RES_TOTAL", "row": 187, "col_start": 1, "col_end": 26},
+    ]
 
-    lignite_row = parse_row_to_list(row=51 , col_start=1, col_end=26, data=data_dict['content'])
-    print(lignite_row)
+    # output_dict_of_lists = {}
+    # for i in list_of_content:
+    #     output_dict_of_lists[f"{i['index']}"] = parse_row_to_list(i['row'],i['col_start'],i['col_end'],data_dict['content'])
+    # print(output_dict_of_lists)
 
-    gas_row = parse_row_to_list(row=83 , col_start=1, col_end=26, data=data_dict['content'])
-    res_row = parse_row_to_list(row=187 , col_start=1, col_end=26, data=data_dict['content'])
+    data_lists = []
+    for i in list_of_content:
+        data_lists.append(parse_row_to_list(i['row'], i['col_start'], i['col_end'], data_dict['content'], i['new_header']))
+    print(data_lists)
 
-    data_lists = (index_list, lignite_row, gas_row, res_row)
-    output_folder = 'data/output'
-    csv_filepath = f'{output_folder}/{date}.csv'
-    write_to_csv(csv_filepath, data_lists)
+    output_folder = 'output'
+    export_daily_production(folder, output_folder, date, data_lists)
