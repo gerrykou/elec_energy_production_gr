@@ -5,6 +5,7 @@ import csv
 from itertools import zip_longest
 from pathlib import Path
 from typing import Dict, List, Tuple
+import requests
 
 from helpers import list_of_content # test breaks when implemented
 
@@ -60,12 +61,12 @@ def _get_cell_value(row: int, col: int, data: list):
 def parse_row_to_list(row: int, col_start: int, col_end: int, data: list, date_str: str, new_header: str='') -> List:
     output = []
     for i in range(col_start,col_end):
-        if i == 1 and new_header != '':
+        if i == 1 and new_header != '': # new_header is empty for hours row
             cell_value = new_header # replace existing header with new_header
         else:
             cell_value = _get_cell_value(row, i, data)
             if new_header == 'time': # create new datetime strings
-                cell_value = _get_iso_datetime_str(date_str, int(cell_value)-1)
+                cell_value = _get_iso_datetime_str(date_str, int(cell_value)-1) # change hours from 01 - 24 to 00 - 23
         output.append(cell_value)
     return output
 
@@ -86,9 +87,32 @@ def export_daily_production(folder, output_folder, date, data_lists):
     csv_filepath = f'{csv_file_dir}/{date}_daily_production.csv'
     _write_to_csv(csv_filepath, data_lists)
 
+def _get_url(date_str: str, filecategory: str) -> str:
+    ''' Return the download url '''
+    operation_market_file_url = f'https://www.admie.gr/getOperationMarketFile?dateStart={date_str}&dateEnd={date_str}&FileCategory={filecategory}'
+    r = requests.get(operation_market_file_url)
+    try:
+        d = r.json()
+        url = d[0]['file_path']
+        return url
+    except ValueError:
+        print(f'{r.text} not a valid json format')
+        
+
+def _get_download(file_url, directory):
+    try:
+        requests.get(file_url)
+        return True
+    except:
+        print(f'cannot access {file_url}')
+        return False
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     # https://www.admie.gr/getOperationMarketFile?dateStart=2022-05-01&dateEnd=2022-05-01&FileCategory=SystemRealizationSCADA
+
+    filecategory = 'SystemRealizationSCADA'
+
 
     # xls_filename = '20220430_SystemRealizationSCADA_01.xls'
     xls_filename = '20220501_SystemRealizationSCADA_01.xls'
@@ -98,6 +122,9 @@ if __name__ == '__main__':
 
     date_str = f'{year_str}-{month_str}-{day_str}' # 2022-04-30
     print(date_str)
+
+    url = _get_url(date_str, filecategory)
+    print(url)
 
     folder = 'data'
     filepath = f'{folder}/{xls_filename}'
