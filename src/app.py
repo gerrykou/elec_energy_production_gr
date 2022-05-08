@@ -65,7 +65,7 @@ def parse_row_to_list(row: int, col_start: int, col_end: int, data: list, date_s
         else:
             cell_value = _get_cell_value(row, i, data)
             if new_header == 'time': # create new datetime strings
-                cell_value = _get_iso_datetime_str(date_str, cell_value)
+                cell_value = _get_iso_datetime_str(date_str, int(cell_value)-1)
         output.append(cell_value)
     return output
 
@@ -88,8 +88,10 @@ def export_daily_production(folder, output_folder, date, data_lists):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
+    # https://www.admie.gr/getOperationMarketFile?dateStart=2022-05-01&dateEnd=2022-05-01&FileCategory=SystemRealizationSCADA
 
-    xls_filename = '20220430_SystemRealizationSCADA_01.xls'
+    # xls_filename = '20220430_SystemRealizationSCADA_01.xls'
+    xls_filename = '20220501_SystemRealizationSCADA_01.xls'
     year_str = xls_filename[:4]
     month_str = xls_filename[4:6]
     day_str = xls_filename[6:8]
