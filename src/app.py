@@ -40,6 +40,7 @@ def read_xls(xls_filepath: str, sheet_number: int) -> Dict:
     return output_dict
 
 def validate_content(data: list, expected_labels: Dict[str, Tuple]):
+    ''' Data quality check '''
     for item in expected_labels.items():
         label = item[0]
         row = item[1][0]
@@ -56,13 +57,15 @@ def _get_cell_value(row: int, col: int, data: list):
     cell_value = data[row][col]
     return cell_value
 
-def parse_row_to_list(row: int, col_start: int, col_end: int, data: list, new_header: str='') -> List:
+def parse_row_to_list(row: int, col_start: int, col_end: int, data: list, date_str: str, new_header: str='') -> List:
     output = []
     for i in range(col_start,col_end):
         if i == 1 and new_header != '':
             cell_value = new_header # replace existing header with new_header
         else:
             cell_value = _get_cell_value(row, i, data)
+            if new_header == 'time': # create new datetime strings
+                cell_value = _get_iso_datetime_str(date_str, cell_value)
         output.append(cell_value)
     return output
 
@@ -71,7 +74,10 @@ def _write_to_csv(filepath: str, data_lists: List):
     export_data = zip_longest(*data_lists, fillvalue = '')
     with open(filepath , mode="w") as csv_file:
         wr = csv.writer(csv_file)
-        wr.writerows(export_data)  
+        wr.writerows(export_data)
+
+def _get_iso_datetime_str(date: str, hrs: str):
+    return f'{date_str}T{hrs}:00:00'
 
 def export_daily_production(folder, output_folder, date, data_lists):
     csv_file_dir = f'{folder}/{output_folder}/{date}'
@@ -84,7 +90,12 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     xls_filename = '20220430_SystemRealizationSCADA_01.xls'
-    date = xls_filename[:8]
+    year_str = xls_filename[:4]
+    month_str = xls_filename[4:6]
+    day_str = xls_filename[6:8]
+
+    date_str = f'{year_str}-{month_str}-{day_str}' # 2022-04-30
+    print(date_str)
 
     folder = 'data'
     filepath = f'{folder}/{xls_filename}'
@@ -102,8 +113,8 @@ if __name__ == '__main__':
         # data_lists.append(parse_row_to_list(i['row'], i['col_start'], i['col_end'], data_dict['content'], i['new_header']))
         col_start = 1
         col_end =26
-        data_lists.append(parse_row_to_list(i['row'], col_start, col_end, data_dict['content'], i['new_header']))
+        data_lists.append(parse_row_to_list(i['row'], col_start, col_end, data_dict['content'], date_str, i['new_header']))
     print(data_lists)
 
     output_folder = 'output'
-    export_daily_production(folder, output_folder, date, data_lists)
+    export_daily_production(folder, output_folder, date_str, data_lists)

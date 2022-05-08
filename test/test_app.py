@@ -45,12 +45,13 @@ def test_parse_row_to_list():
     my_file = 'test/test.xls'
     sheet_number = 1
     data = app.read_xls(my_file, sheet_number)['content']
-    actual_output1 = app.parse_row_to_list(row=51 , col_start=1, col_end=26, data=data)
+    date_str = '2022-04-30'
+    actual_output1 = app.parse_row_to_list(row=51 , col_start=1, col_end=26, date_str=date_str, data=data)
     expected_output1 = [
         'TOTAL LIGNITE', 204.0, 190.0, 191.0, 191.0, 191.0, 189.0, 190.0, 190.0, 189.0, 189.0, 187.0,
         192.0, 199.0, 200.0, 190.0, 190.0, 191.0, 195.0, 195.0, 199.0, 203.0, 219.0, 229.0, 204.0
         ]
-    actual_output2 = app.parse_row_to_list(row=4 , col_start=1, col_end=26, data=data)
+    actual_output2 = app.parse_row_to_list(row=4 , col_start=1, col_end=26, date_str=date_str, data=data)
     expected_output2 = [
         '', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', 
         '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24'
