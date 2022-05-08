@@ -10,4 +10,4 @@ RUN python3 -m pip install -r requirements.txt
 COPY src src
 COPY test test
 
-CMD ["python3","-m","pytest", "-rP"]
+CMD ["python3","-m","pytest", "-vrP"]

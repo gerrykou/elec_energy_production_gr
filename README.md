@@ -34,7 +34,7 @@ python3 -m pip install -r requirements.txt
 
 ### Run Tests
 ```
-pytest -vrP
+python3 -m pytest -vrP
 ```
 ### Run the app
 ```
