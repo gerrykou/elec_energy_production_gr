@@ -93,15 +93,25 @@ def _get_url(date_str: str, filecategory: str) -> str:
     r = requests.get(operation_market_file_url)
     try:
         d = r.json()
-        url = d[0]['file_path']
+        url = d[-1]['file_path']
         return url
     except ValueError:
         print(f'{r.text} not a valid json format')
         
 
 def _get_download(file_url, directory):
+    # https://www.admie.gr/sites/default/files/attached-files/type-file/2022/05/20220501_SystemRealizationSCADA_01.xls
+
     try:
-        requests.get(file_url)
+        print(f'Downloading file from {file_url} ...')
+        r = requests.get(file_url)
+        dl_filename = file_url.split('/')[-1]
+        file_path = f'{directory}/{dl_filename}'
+        p = Path(directory)
+        p.mkdir(parents=True,exist_ok=True)
+        print(f'Saving file in {file_path} ...')
+        with open(file_path, 'wb') as output:
+            output.write(r.content)
         return True
     except:
         print(f'cannot access {file_url}')
@@ -110,10 +120,9 @@ def _get_download(file_url, directory):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     # https://www.admie.gr/getOperationMarketFile?dateStart=2022-05-01&dateEnd=2022-05-01&FileCategory=SystemRealizationSCADA
-
+    folder = 'data'
+    download_dir = f'{folder}/raw'
     filecategory = 'SystemRealizationSCADA'
-
-
     # xls_filename = '20220430_SystemRealizationSCADA_01.xls'
     xls_filename = '20220501_SystemRealizationSCADA_01.xls'
     year_str = xls_filename[:4]
@@ -126,7 +135,10 @@ if __name__ == '__main__':
     url = _get_url(date_str, filecategory)
     print(url)
 
-    folder = 'data'
+
+    _get_download(url, download_dir)
+
+
     filepath = f'{folder}/{xls_filename}'
     sheet_number = 1 # 1 is the 2nd worksheet
     data_dict = read_xls(filepath, sheet_number)
@@ -143,7 +155,7 @@ if __name__ == '__main__':
         col_start = 1
         col_end =26
         data_lists.append(parse_row_to_list(i['row'], col_start, col_end, data_dict['content'], date_str, i['new_header']))
-    print(data_lists)
+    # print(data_lists)
 
     output_folder = 'output'
     export_daily_production(folder, output_folder, date_str, data_lists)
