@@ -2,6 +2,7 @@
 import logging
 import xlrd
 import csv
+import os
 from itertools import zip_longest
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -78,7 +79,7 @@ def _write_to_csv(filepath: str, data_lists: List):
         wr.writerows(export_data)
 
 def _get_iso_datetime_str(date: str, hrs: str):
-    return f'{date_str}T{hrs}:00:00'
+    return f'{date}T{hrs}:00:00'
 
 def export_daily_production(folder, output_folder, date, data_lists):
     csv_file_dir = f'{folder}/{output_folder}/{date}'
@@ -99,8 +100,9 @@ def _get_url(date_str: str, filecategory: str) -> str:
         print(f'{r.text} not a valid json format')
         
 
-def _get_download(file_url, directory):
-    # https://www.admie.gr/sites/default/files/attached-files/type-file/2022/05/20220501_SystemRealizationSCADA_01.xls
+def _get_download(file_url: str, directory: str) -> str:
+    ''' Download file in the directory, returns filepath '''
+    # file url: https://www.admie.gr/sites/default/files/attached-files/type-file/2022/05/20220501_SystemRealizationSCADA_01.xls
 
     try:
         print(f'Downloading file from {file_url} ...')
@@ -112,50 +114,47 @@ def _get_download(file_url, directory):
         print(f'Saving file in {file_path} ...')
         with open(file_path, 'wb') as output:
             output.write(r.content)
-        return True
+        return file_path
     except:
         print(f'cannot access {file_url}')
         return False
 
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    # https://www.admie.gr/getOperationMarketFile?dateStart=2022-05-01&dateEnd=2022-05-01&FileCategory=SystemRealizationSCADA
+def download_xls(date_str: str):
     folder = 'data'
-    download_dir = f'{folder}/raw'
-    filecategory = 'SystemRealizationSCADA'
-    # xls_filename = '20220430_SystemRealizationSCADA_01.xls'
-    xls_filename = '20220501_SystemRealizationSCADA_01.xls'
-    year_str = xls_filename[:4]
-    month_str = xls_filename[4:6]
-    day_str = xls_filename[6:8]
-
-    date_str = f'{year_str}-{month_str}-{day_str}' # 2022-04-30
-    print(date_str)
+    download_dir = f'{folder}/raw/{date_str}'
+    filecategory = 'SystemRealizationSCADA' 
 
     url = _get_url(date_str, filecategory)
-    print(url)
-
 
     _get_download(url, download_dir)
 
+def xls_to_csv(date_str: str):
+    folder = 'data'
+    output_folder = 'output'
 
-    filepath = f'{folder}/{xls_filename}'
+    download_dir = f'{folder}/raw/{date_str}'
+    xls_filename = os.listdir(download_dir)[0]
+    filepath = f'{download_dir}/{xls_filename}'
+
     sheet_number = 1 # 1 is the 2nd worksheet
     data_dict = read_xls(filepath, sheet_number)
-    validate_content(data_dict['content'], expected_labels)
 
-    # output_dict_of_lists = {}
-    # for i in list_of_content:
-    #     output_dict_of_lists[f"{i['index']}"] = parse_row_to_list(i['row'],i['col_start'],i['col_end'],data_dict['content'])
-    # print(output_dict_of_lists)
+    validate_content(data_dict['content'], expected_labels)
 
     data_lists = []
     for i in list_of_content:
-        # data_lists.append(parse_row_to_list(i['row'], i['col_start'], i['col_end'], data_dict['content'], i['new_header']))
         col_start = 1
         col_end =26
         data_lists.append(parse_row_to_list(i['row'], col_start, col_end, data_dict['content'], date_str, i['new_header']))
-    # print(data_lists)
 
-    output_folder = 'output'
     export_daily_production(folder, output_folder, date_str, data_lists)
+
+def main():
+    date_str = '2022-05-05'
+    download_xls(date_str)
+    xls_to_csv(date_str)
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    # https://www.admie.gr/getOperationMarketFile?dateStart=2022-05-01&dateEnd=2022-05-01&FileCategory=SystemRealizationSCADA
+    main()

@@ -60,7 +60,7 @@ def test_parse_row_to_list():
     assert actual_output2 == expected_output2
 
 # TEST FAILURES
-def test_rvalidate_content_error():
+def test_validate_content_error():
     my_file = 'test/test.xls'
     sheet_number = 1
     data = app.read_xls(my_file, sheet_number)['content']
